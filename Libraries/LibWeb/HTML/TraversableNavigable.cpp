@@ -20,6 +20,11 @@
 #include <LibWeb/Painting/ViewportPaintable.h>
 #include <LibWeb/Platform/EventLoopPlugin.h>
 
+#include <core/SkPictureRecorder.h>
+#include <core/SkCanvas.h>
+
+#include <iostream>
+
 namespace Web::HTML {
 
 GC_DEFINE_ALLOCATOR(TraversableNavigable);

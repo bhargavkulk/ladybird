@@ -28,6 +28,7 @@ public:
 #endif
 
     virtual ~DisplayListPlayerSkia() override;
+    Gfx::PaintingSurface& surface() const;
 
 private:
     void draw_glyph_run(DrawGlyphRun const&) override;
@@ -69,7 +70,7 @@ private:
 
     bool would_be_fully_clipped_by_painter(Gfx::IntRect) const override;
 
-    Gfx::PaintingSurface& surface() const;
+
 
     RefPtr<Gfx::SkiaBackendContext> m_context {};
     RefPtr<Gfx::PaintingSurface> m_surface {};

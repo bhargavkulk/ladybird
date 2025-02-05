@@ -8,11 +8,19 @@
 #include <LibGfx/PaintingSurface.h>
 #include <LibGfx/SkiaUtils.h>
 
+#include <core/SkCanvas.h>
 #include <core/SkColorSpace.h>
+#include <core/SkPictureRecorder.h>
 #include <core/SkSurface.h>
 #include <gpu/GrBackendSurface.h>
 #include <gpu/GrDirectContext.h>
 #include <gpu/ganesh/SkSurfaceGanesh.h>
+#include <core/SkPicture.h>
+
+#include <include/core/SkPaint.h>
+#include <include/core/SkSerialProcs.h>
+#include <include/core/SkStream.h>
+#include <iostream>
 
 #ifdef AK_OS_MACOS
 #    include <gpu/ganesh/mtl/GrMtlBackendSurface.h>
@@ -25,6 +33,31 @@ struct PaintingSurface::Impl {
     sk_sp<SkSurface> surface;
     RefPtr<Bitmap> bitmap;
     RefPtr<SkiaBackendContext> context;
+
+    SkPictureRecorder recorder;
+    SkCanvas* recordingCanvas;
+
+    Impl(IntSize size, sk_sp<SkSurface> surface, RefPtr<Bitmap> bitmap, RefPtr<SkiaBackendContext> context)
+        : size(size)
+        , surface(std::move(surface))
+        , bitmap(std::move(bitmap))
+        , context(std::move(context))
+        , recordingCanvas(recorder.beginRecording(static_cast<float>(size.width()), static_cast<float>(size.height())))
+    {
+
+    // 2. Draw a red rectangle at the origin (0,0)
+        SkPaint paint;
+        paint.setColor(SK_ColorRED);     // Red fill color
+        paint.setStyle(SkPaint::kFill_Style); // Fill the rectangle
+        recordingCanvas->drawRect(SkRect::MakeXYWH(0, 0, 200, 100), paint);
+        // 3. Finish recording and get the SkPicture
+        sk_sp<SkPicture> picture = recorder.finishRecordingAsPicture();
+
+        // 4. Serialize to a .skp file
+        sk_sp<SkData> data = picture->serialize();
+        SkFILEWStream("/tmp/red_rectangle.skp").write(data->data(), data->size());
+        std::cout << size.width() << ' ' << size.height() << '\n';
+    }
 };
 
 NonnullRefPtr<PaintingSurface> PaintingSurface::create_with_size(RefPtr<SkiaBackendContext> context, Gfx::IntSize size, Gfx::BitmapFormat color_type, Gfx::AlphaType alpha_type)
